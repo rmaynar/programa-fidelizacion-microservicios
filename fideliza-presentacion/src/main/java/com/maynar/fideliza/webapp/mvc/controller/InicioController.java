@@ -13,20 +13,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.maynar.fideliza.bom.Cliente;
-import com.maynar.fideliza.bom.Usuario;
-import com.maynar.fideliza.services.IClienteService;
 import com.maynar.fideliza.services.IOfertasService;
+import com.maynar.fideliza.services.IPuntos;
 import com.maynar.fideliza.webapp.beans.UsuarioBean;
 
 @Controller
 public class InicioController {
 
+	
 	@Autowired
 	private IOfertasService ofertasService;
 
 	@Autowired
-	private IClienteService clienteService;
+	private IPuntos puntosService;
 
 	/**
 	 * Consultar puntos
@@ -36,11 +35,7 @@ public class InicioController {
 	@RequestMapping(path="/consultaPuntos", method = RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody public String consultarPuntos(HttpSession session) {
 		UsuarioBean usuario = (UsuarioBean)session.getAttribute("usuario");
-//		Usuario user = new Usuario(usuario.getId());
-		Cliente cli = new Cliente();
-		cli.setId_usuario(usuario.getEmail());
-		cli = clienteService.obtenerCliente(cli);
-		return "{\"puntos\":"+cli.getPuntos()+"}";
+		return puntosService.consultarPuntos(usuario.getEmail());
 	}
 	
 	@RequestMapping(path = "/ofertas/listado", method = RequestMethod.GET)
@@ -48,10 +43,7 @@ public class InicioController {
 		UsuarioBean usuario = (UsuarioBean) sesion.getAttribute("usuario");
 		// comprobamos que se haya logado el usuario
 		if (usuario != null) {
-			Cliente cliente = new Cliente();
-			cliente.setId_usuario(usuario.getEmail());
-			cliente = clienteService.obtenerCliente(cliente);
-			model.addAttribute("puntos", cliente.getPuntos());
+			model.addAttribute("puntos", puntosService.consultarPuntos(usuario.getEmail()));
 			model.addAttribute("ofertas", ofertasService.consultarTodas());
 			return "ofertas";
 		} else {

@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.maynar.fideliza.bom.Cliente;
-import com.maynar.fideliza.bom.Operador;
 import com.maynar.fideliza.bom.Usuario;
 import com.maynar.fideliza.services.ILoginService;
 import com.maynar.fideliza.webapp.beans.ClienteBean;
@@ -45,8 +43,7 @@ public class LoginController {
 	public String procesarFormulario(@ModelAttribute UsuarioBean usuario, HttpSession session) {
 		String returnView = "login";
 		
-		Usuario user = new Usuario(usuario.getUsuario(), usuario.getPassword(), usuario.getEmail());
-		user = loginService.login(user);
+		Usuario user = loginService.login(usuario.getEmail(),usuario.getPassword());
 		if(user!=null) {
 			if(user.getTipo()!=null&&user.getTipo().equals("cliente")) {//devolvemos vista de cliente
 				returnView = "inicio";
@@ -77,15 +74,9 @@ public class LoginController {
 	@RequestMapping(path="/registroCliente", method = RequestMethod.POST)
 	public String registroCliente(@ModelAttribute ClienteBean cliente, HttpSession session) {
 		String returnView = "login";
-		
-		Usuario user = new Usuario(cliente.getDatosUsuario().getUsuario(), cliente.getDatosUsuario().getPassword(), cliente.getDatosUsuario().getEmail(), "cliente");
-		user = loginService.register(user);
-		if(user!=null) {
-			Cliente clienteEntity = new Cliente();
-			clienteEntity.setId_usuario(user.getEmail());
-			loginService.registrarCliente(clienteEntity);
-			cliente.getDatosUsuario().setTipo("cliente");
-			session.setAttribute("usuario", cliente.getDatosUsuario());
+		ClienteBean cli = loginService.registrarCliente(cliente);
+		if(cli!=null) {
+			session.setAttribute("usuario", cli.getDatosUsuario());
 			returnView = "inicio";
 		}
 		return returnView;
@@ -96,6 +87,13 @@ public class LoginController {
 		return "registroOperador";
 	}
 	
+	/**
+	 * Registro operador: desactivado
+	 * @param operador
+	 * @param session
+	 * @return
+	 */
+	/**
 	@RequestMapping(path="/registroOperador", method = RequestMethod.POST)
 	public String registroOperador(@ModelAttribute OperadorBean operador, HttpSession session) {
 		String returnView = "login";
@@ -112,7 +110,7 @@ public class LoginController {
 		}
 		return returnView;
 	}
-	
+	**/
 	@RequestMapping(path="/logout", method = RequestMethod.GET)
 	public String logout(Map<String,Object> model, HttpSession sesion) {
 		sesion.removeAttribute("usuario");

@@ -1,42 +1,48 @@
 package com.maynar.fideliza.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import com.maynar.fideliza.bom.Cliente;
-import com.maynar.fideliza.bom.Operador;
 import com.maynar.fideliza.bom.Usuario;
-import com.maynar.fideliza.dao.IClienteDao;
-import com.maynar.fideliza.dao.IOperadorDao;
-import com.maynar.fideliza.dao.IUsuarioDao;
 import com.maynar.fideliza.services.ILoginService;
-@Service
-public class RestTemplateLoginService implements ILoginService{
+import com.maynar.fideliza.webapp.beans.ClienteBean;
+
+/**
+ * para microservicioss @Service("restTemplateOfertasService")
+ * 
+ * @author rmaynar
+ *
+ */
+@Service("restTemplateLoginService")
+public class RestTemplateLoginService implements ILoginService {
+
 	@Autowired
-	private IUsuarioDao usuarioDao;
-	@Autowired
-	private IOperadorDao operadorDao;
-	@Autowired
-	private IClienteDao clienteDao;
-	
-	public Usuario login(Usuario usuario) {
-		Usuario user = usuarioDao.obtenerUsuario(usuario);
-		return user;
+	private RestTemplate restTemplate;
+
+	public Usuario login(String email, String password) {
+
+		String transactionUrl = "http://localhost:8084/login";
+
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(transactionUrl)
+				// Add query parameter
+				.queryParam("email", email).queryParam("password", password);
+
+		RestTemplate restTemplate = new RestTemplate();
+		Usuario response = restTemplate.getForObject(builder.toUriString(), Usuario.class);
+		return response;
 	}
 
-	public Usuario register(Usuario usuario) {
-		Usuario user = usuarioDao.crearUsuario(usuario);
-		return user;
-	}
-	
-	public Cliente registrarCliente(Cliente cliente) {
-		cliente = clienteDao.guardarCliente(cliente);
-		return cliente;
-	}
+	public ClienteBean registrarCliente(ClienteBean cliente) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.set("Content-Type", "application/json");
 
-	public Operador registrarOperador(Operador operador) {
-		operador = operadorDao.crearOperador(operador);
-		return operador;
+		HttpEntity <ClienteBean> httpEntity = new HttpEntity <ClienteBean> (cliente, httpHeaders);
+		ClienteBean response = restTemplate.postForObject("http://localhost:8084/registroCliente", httpEntity, ClienteBean.class);
+		return response;
 	}
 
 }
